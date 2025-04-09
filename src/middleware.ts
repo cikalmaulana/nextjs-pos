@@ -1,48 +1,65 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server'
 
 const getFakeSession = () => ({
     isAuthenticated: true,
-    role: 'cashier',
+    role: 'PAW02', // cashier
 });
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    const session = getFakeSession(); 
+    const session = getFakeSession();
 
-    // Kalau akses root '/'
+    const roleMap = {
+        PAW01: 'admin',
+        PAW02: 'cashier',
+    } as const;
+
+    const userRole = roleMap[session.role as keyof typeof roleMap];
+    
+    // Root
     if (pathname === '/') {
-        if (!session.isAuthenticated) {
+        if (!session.isAuthenticated || !userRole) {
             return NextResponse.redirect(new URL('/login', request.url));
         }
 
-        const redirectPath = session.role === 'admin' ? '/admin' : '/cashier';
-        return NextResponse.redirect(new URL(redirectPath, request.url));
+        return NextResponse.redirect(new URL(`/${userRole}`, request.url));
     }
 
-    // Redirect ke login kalau belum login
+    // Belum login
     if (!session.isAuthenticated && pathname !== '/login') {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    // Kalau udah login dan buka /login → redirect ke dashboard sesuai role
+    // Udah login tapi buka /login
     if (session.isAuthenticated && pathname === '/login') {
-        const redirectPath = session.role === 'admin' ? '/admin' : '/cashier';
-        return NextResponse.redirect(new URL(redirectPath, request.url));
+        return NextResponse.redirect(new URL(`/${userRole}`, request.url));
     }
 
-    // Role-based access
-    if (pathname.startsWith('/admin') && session.role !== 'admin') {
+    // Akses role yang salah
+    if (pathname.startsWith('/admin') && session.role !== 'PAW01') {
         return NextResponse.redirect(new URL('/restricted', request.url));
     }
 
-    if (pathname.startsWith('/cashier') && session.role !== 'cashier') {
+    if (pathname.startsWith('/cashier') && session.role !== 'PAW02') {
         return NextResponse.redirect(new URL('/restricted', request.url));
+    }
+
+    // Biar /restricted bisa diakses semua
+    if (pathname.startsWith('/restricted')) {
+        return NextResponse.next();
     }
 
     return NextResponse.next();
-}  
+}
 
 export const config = {
-    matcher: ['/((?!_next|favicon.ico|globals.css).*)'],
+    matcher: [
+        {
+            source: '/((?!api|_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|otf|mjs|ts|jsx)$).*)',
+            missing: [
+            { type: 'header', key: 'next-router-prefetch' },
+            { type: 'header', key: 'purpose', value: 'prefetch' },
+            ],
+        },
+    ],
 };
