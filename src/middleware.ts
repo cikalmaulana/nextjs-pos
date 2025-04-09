@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-const getFakeSession = () => ({
+export const getFakeSession = () => ({
     isAuthenticated: true,
     role: 'PAW02', // cashier
 });
