@@ -25,7 +25,7 @@ export default function Sidebar(props: I_Props) {
     }
 
     return (
-        <aside className="w-72 h-screen bg-white border-r border-gray-200 p-6 flex flex-col justify-between">
+        <aside className="fixed top-0 left-0 z-40 w-72 h-screen bg-white border-r border-gray-200 p-6 flex flex-col justify-between overflow-y-auto">
             <div>
                 <h2 className="text-2xl font-bold mb-1 text-gray-800">Admin Panel</h2>
                 <div className="flex flex-col mb-7">
@@ -81,7 +81,7 @@ function SidebarItem({
     return (
         <span
             className={clsx(
-                'flex items-center gap-3 px-4 py-2 rounded-md text-gray-700 hover:bg-paw-blue-light hover:text-white transition',
+                'flex items-center gap-3 px-4 py-2 rounded-md text-gray-700 hover:bg-paw-blue-dark hover:text-white transition',
                 isActive && 'bg-paw-blue text-white'
             )}
             onMouseEnter={() => setHover(true)}
